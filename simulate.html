@@ -6,17 +6,56 @@
     <h1>Welcome</h1>
     <p>This is my website.</p>
     <label>First name</label>
-    <input type="text" placeholder="something" value="Korawit"/>
+    <input type="text" placeholder="something" value="" id="firstname"/>
     <label>Last name</label>
-    <input type="text" placeholder="something" value="Kaema"/>
+    <input type="text" placeholder="something" value=""/>
     <select>
       <option>something1</option>
       <option>something2</option>
       <option>something3</option>
     </select>
-    <input type="checkbox" /> 
-    <input type="radio" />
+    <div>
+      <div>
+        <input type="checkbox" /> 
+        <input type="radio" />
+      </div>
+    </div>
     <button>save button</button>
   </body>
 </html>
+
+
+<script>
+  var fixture = {
+    target: "firstname",
+    text: "korawit"
+  }
+  iterateThroughDOM(document.body);
+
+    function iterateThroughDOM(element) {
+      if (element.tagName.toLowerCase() === 'script') {
+        return null; // Skip script elements
+      }
+      
+      if(fixture.target === element.id){
+        element.value = fixture.text
+      }
+      
+      var node = {
+        id: element.id,
+        tag: element.tagName.toLowerCase(),
+        text: element.innerText.trim(),
+        value: element.value, // Include the value property
+        children: []
+      };
+
+      for (var i = 0; i < element.children.length; i++) {
+        var childNode = iterateThroughDOM(element.children[i]);
+        if (childNode !== null) {
+          node.children.push(childNode);
+        }
+      }
+
+      return node;
+    }
 </script>

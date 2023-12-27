@@ -1,0 +1,93 @@
+{
+  "tag": "body",
+  "text": "Welcome\n    This is my website.\n    First name\n    \n    Last name\n    \n    \n      something1\n      something2\n      something3\n    \n    \n      \n         \n        \n      \n    \n    save button",
+  "children": [
+    {
+      "tag": "h1",
+      "text": "Welcome",
+      "children": []
+    },
+    {
+      "tag": "p",
+      "text": "This is my website.",
+      "children": []
+    },
+    {
+      "tag": "label",
+      "text": "First name",
+      "children": []
+    },
+    {
+      "tag": "input",
+      "text": "",
+      "value": "Korawit",
+      "children": []
+    },
+    {
+      "tag": "label",
+      "text": "Last name",
+      "children": []
+    },
+    {
+      "tag": "input",
+      "text": "",
+      "value": "Kaema",
+      "children": []
+    },
+    {
+      "tag": "select",
+      "text": "something1\n      something2\n      something3",
+      "value": "something1",
+      "children": [
+        {
+          "tag": "option",
+          "text": "something1",
+          "value": "something1",
+          "children": []
+        },
+        {
+          "tag": "option",
+          "text": "something2",
+          "value": "something2",
+          "children": []
+        },
+        {
+          "tag": "option",
+          "text": "something3",
+          "value": "something3",
+          "children": []
+        }
+      ]
+    },
+    {
+      "tag": "div",
+      "text": "",
+      "children": [
+        {
+          "tag": "div",
+          "text": "",
+          "children": [
+            {
+              "tag": "input",
+              "text": "",
+              "value": "on",
+              "children": []
+            },
+            {
+              "tag": "input",
+              "text": "",
+              "value": "on",
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tag": "button",
+      "text": "save button",
+      "value": "",
+      "children": []
+    }
+  ]
+}

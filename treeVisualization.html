@@ -24,11 +24,13 @@
 <button onclick="saveJSON()">Save JSON</button>
 <button onclick="clearVisualization()">Clear Visualization</button>
 <div id="tree-container"></div>
+<div id="tree-json"></div>
 <script>
 var htmlTree; // Declare htmlTree globally
 
 function clearVisualization(element, container) {
   document.getElementById('tree-container').innerHTML = ''
+  document.getElementById('tree-json').innerHTML = ''
 }
 
 function visualizeTree(element, container) {
@@ -64,6 +66,7 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
       treeContainer.innerHTML = ''; // Clear previous content
       htmlTree = buildTree(bodyElement);
       console.log(JSON.stringify(htmlTree, null, 2));
+      document.getElementById("tree-json").innerHTML = JSON.stringify(htmlTree, null, 2); 
       visualizeTree(htmlTree, treeContainer);
     };
     reader.readAsText(file);
@@ -76,6 +79,7 @@ function buildTree(element) {
   }
 
   var node = {
+    id: element.id,
     tag: element.tagName.toLowerCase(),
     text: element.innerText.trim(),
     value: element.value, // Include the value property
