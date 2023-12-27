@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Tree Visualization</title>
+  <style>
+    /* Add some basic styling for better visualization */
+    ul {
+      list-style-type: none;
+      padding-left: 20px;
+      border-left: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept=".html">Visualize HTML
+<br>
+<input type="file" id="jsonInput" accept=".json">Visualize JSON
+<br>
+<br>
+<br>
+<button onclick="saveJSON()">Save JSON</button>
+<button onclick="clearVisualization()">Clear Visualization</button>
+<div id="tree-container"></div>
+<script>
+var htmlTree; // Declare htmlTree globally
+
+function clearVisualization(element, container) {
+  document.getElementById('tree-container').innerHTML = ''
+}
+
+function visualizeTree(element, container) {
+  var node = document.createElement('div');
+  node.innerHTML = '<strong>' + element.tag + '</strong>: ' + element.text;
+  if (element.value) {
+    node.innerHTML += ' (Value: ' + element.value + ')';
+  }
+  if (element.children.length > 0) {
+    var childList = document.createElement('ul');
+    element.children.forEach(function(child) {
+      var childItem = document.createElement('li');
+      visualizeTree(child, childItem);
+      childList.appendChild(childItem);
+    });
+    node.appendChild(childList);
+  }
+
+  container.appendChild(node);
+}
+
+document.getElementById('fileInput').addEventListener('change', function(event) {
+  var file = event.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var htmlContent = e.target.result;
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(htmlContent, 'text/html');
+      
+      var bodyElement = doc.body;
+      var treeContainer = document.getElementById('tree-container');
+      treeContainer.innerHTML = ''; // Clear previous content
+      htmlTree = buildTree(bodyElement);
+      console.log(JSON.stringify(htmlTree, null, 2));
+      visualizeTree(htmlTree, treeContainer);
+    };
+    reader.readAsText(file);
+  }
+});
+
+function buildTree(element) {
+  if (element.tagName.toLowerCase() === 'script') {
+    return null; // Skip script elements
+  }
+
+  var node = {
+    tag: element.tagName.toLowerCase(),
+    text: element.innerText.trim(),
+    value: element.value, // Include the value property
+    children: []
+  };
+
+  for (var i = 0; i < element.children.length; i++) {
+    var childNode = buildTree(element.children[i]);
+    if (childNode !== null) {
+      node.children.push(childNode);
+    }
+  }
+
+  return node;
+}
+
+function saveJSON() {
+  if (!htmlTree) {
+    console.error('htmlTree is not defined.');
+    return;
+  }
+
+  var treeContainer = document.getElementById('tree-container');
+  var jsonContent = JSON.stringify(htmlTree, null, 2);
+  var blob = new Blob([jsonContent], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'html_tree.json';
+  document.body.appendChild(a);
+  a.click();
+
+  // Clean up
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('jsonInput').addEventListener('change', function(event) {
+  var file = event.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var jsonContent = e.target.result;
+      try {
+        htmlTree = JSON.parse(jsonContent);
+        var treeContainer = document.getElementById('tree-container');
+        treeContainer.innerHTML = ''; // Clear previous content
+        visualizeTree(htmlTree, treeContainer);
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+    };
+    reader.readAsText(file);
+  }
+});
+</script>
+
+</body>
+</html>
