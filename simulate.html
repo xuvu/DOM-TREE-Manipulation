@@ -6,7 +6,7 @@
     <h1>Welcome</h1>
     <p>This is my website.</p>
     <label>First name</label>
-    <input type="text" placeholder="something" value="" id="firstname"/>
+    <input type="text" placeholder="something" value=""/>
     <label>Last name</label>
     <input type="text" placeholder="something" value=""/>
     <select>
@@ -33,7 +33,7 @@
   iterateThroughDOM(document.body);
 
     function iterateThroughDOM(element) {
-      if (element.tagName.toLowerCase() === 'script') {
+      if(element.tagName.toLowerCase() === 'script') {
         return null; // Skip script elements
       }
       

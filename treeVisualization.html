@@ -36,9 +36,11 @@ function clearVisualization(element, container) {
 function visualizeTree(element, container) {
   var node = document.createElement('div');
   node.innerHTML = '<strong>' + element.tag + '</strong>: ' + element.text;
-  if (element.value) {
-    node.innerHTML += ' (Value: ' + element.value + ')';
-  }
+  node.innerHTML += ' (Value: ' + element.value + ')';
+  node.innerHTML += ' (Level: ' + element.tree_level + ')';
+  node.innerHTML += ' (Parent: ' + element.parent_id + ')';
+  node.innerHTML += ' (Sequence: ' + element.sequence + ')';
+
   if (element.children.length > 0) {
     var childList = document.createElement('ul');
     element.children.forEach(function(child) {
@@ -73,7 +75,7 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
   }
 });
 
-function buildTree(element) {
+function buildTree(element,current_level = 0, parent_id = null, sequence = 0) {
   if (element.tagName.toLowerCase() === 'script') {
     return null; // Skip script elements
   }
@@ -83,11 +85,14 @@ function buildTree(element) {
     tag: element.tagName.toLowerCase(),
     text: element.innerText.trim(),
     value: element.value, // Include the value property
+    tree_level: current_level,
+    parent: parent_id,
+    sequnce: sequence,
     children: []
   };
 
   for (var i = 0; i < element.children.length; i++) {
-    var childNode = buildTree(element.children[i]);
+    var childNode = buildTree(element.children[i],current_level + 1, element.id || null, i);
     if (childNode !== null) {
       node.children.push(childNode);
     }
