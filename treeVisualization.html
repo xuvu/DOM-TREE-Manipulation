@@ -37,19 +37,25 @@ function visualizeTree(element, container) {
   var node = {
     text: element.text,
     tag: element.tag,
+    type: element.type,
+    checked: element.checked,
     node_identifier: element.node_identifier,
+    sequenceCount: element.sequenceCount,
     value: element.value,
     tree_level: element.tree_level,
     children:[]
   };
-
+  
   var elementDiv = document.createElement('div');
   elementDiv.innerHTML = '<strong>' + element.tag + '</strong>';
 
   var details = document.createElement('ul');
   details.innerHTML += '<li>text: ' + element.text + '</li>';
   details.innerHTML += '<li>tag: ' + element.tag + '</li>';
+  details.innerHTML += '<li>type: ' + element.type + '</li>';
+  details.innerHTML += '<li>checked: ' + element.checked + '</li>';
   details.innerHTML += '<li>node_identifier: ' + element.node_identifier + '</li>';
+  details.innerHTML += '<li>sequnceCount: ' + element.sequenceCount + '</li>';
   details.innerHTML += '<li>value: ' + element.value + '</li>';
   details.innerHTML += '<li>tree_level: ' + element.tree_level + '</li>';
 
@@ -90,15 +96,24 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
   }
 });
 
-function buildTree(element,current_level = 0, parent_id = null, sequence = 0) {
-  console.log(element.tagName, current_level)
+let sequenceCount = {};
+
+function buildTree(element, current_level = 0, parent_id = null, sequence = '', index = 0) {
   if (element.tagName.toLowerCase() === 'script') {
     return null; // Skip script elements
   }
+  sequence = sequence ? sequence + ' ' + element.tagName.toLowerCase() : element.tagName.toLowerCase();
+  
+  // If the sequence is already in sequenceCount, increment its count. Otherwise, initialize it to 0.
+  sequenceCount[sequence] = sequenceCount[sequence] !== undefined ? sequenceCount[sequence] + 1 : 0;
+  
   var node = {
     id: element.id,
     tag: element.tagName.toLowerCase(),
-    node_identifier: '',
+    type: element.type,
+    checked: element.checked,
+    node_identifier: sequence, // Include the sequence count
+    sequenceCount: sequenceCount[sequence],
     text: element.innerText.trim(),
     value: element.value, // Include the value property
     tree_level: current_level,
@@ -106,7 +121,7 @@ function buildTree(element,current_level = 0, parent_id = null, sequence = 0) {
   };
 
   for (var i = 0; i < element.children.length; i++) {
-    var childNode = buildTree(element.children[i],current_level + 1, element.id || null, i);
+    var childNode = buildTree(element.children[i], current_level + 1, element.id || null, sequence, i);
     if (childNode !== null) {
       node.children.push(childNode);
     }
@@ -114,6 +129,8 @@ function buildTree(element,current_level = 0, parent_id = null, sequence = 0) {
 
   return node;
 }
+
+
 
 function saveJSON() {
   if (!htmlTree) {

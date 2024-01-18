@@ -27,42 +27,100 @@
       </div>
     </div>
     <button onclick="validateAndSave()">save button</button>
+    <input type="file" id="jsonInput" accept=".json">Visualize JSON
+    <div id="tree-container"></div>
   </body>
 </html>
 
 <script>
-  var fixture = {
-    target: "firstname",
-    text: "korawit",
-  };
-  iterateThroughDOM(document.body);
-
-  function iterateThroughDOM(element) {
-    if (element.tagName.toLowerCase() === "script") {
-      return null; // Skip script elements
+  function fillNode(node) {
+  switch(node.type) {
+    case 'text':
+      // Handle text input
+      console.log('This is a text input with value: ' + node.value);
+      document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      break;
+    case 'checkbox':
+      // Handle checkbox input
+      console.log('This is a checkbox input and it is ' + (node.checked ? 'checked' : 'not checked'));
+      document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      break;
+    case 'radio':
+      // Handle radio input
+      console.log('This is a radio input and it is ' + (node.checked ? 'selected' : 'not selected'));
+      document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      break;
+    case 'select-one':
+      // Handle select input
+      console.log('This is a radio input and it is ' + (node.value ? 'selected' : 'not selected'));
+      document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      break;
+    // Add more cases as needed
+    default:
+      console.log('This is a ' + node.type + ' input');
     }
+  }
 
-    if (fixture.target.toLowerCase() === element.id.toLowerCase()) {
-      element.value = fixture.text;
-    }
-
+  function visualizeTree(element, container) {
     var node = {
-      id: element.id,
-      tag: element.tagName.toLowerCase(),
-      text: element.innerText.trim(),
-      value: element.value, // Include the value property
-      children: [],
+      text: element.text,
+      tag: element.tag,
+      type: element.type,
+      checked: element.checked,
+      node_identifier: element.node_identifier,
+      sequenceCount: element.sequenceCount,
+      value: element.value,
+      tree_level: element.tree_level,
+      children:[]
     };
+    
+    fillNode(node)
 
-    for (var i = 0; i < element.children.length; i++) {
-      var childNode = iterateThroughDOM(element.children[i]);
-      if (childNode !== null) {
+    var elementDiv = document.createElement('div');
+    elementDiv.innerHTML = '<strong>' + element.tag + '</strong>';
+    var details = document.createElement('ul');
+    details.innerHTML += '<li>text: ' + element.text + '</li>';
+    details.innerHTML += '<li>tag: ' + element.tag + '</li>';
+    details.innerHTML += '<li>type: ' + element.type + '</li>';
+    details.innerHTML += '<li>checked: ' + element.checked + '</li>';
+    details.innerHTML += '<li>node_identifier: ' + element.node_identifier + '</li>';
+    details.innerHTML += '<li>sequnceCount: ' + element.sequenceCount + '</li>';
+    details.innerHTML += '<li>value: ' + element.value + '</li>';
+    details.innerHTML += '<li>tree_level: ' + element.tree_level + '</li>';
+    elementDiv.appendChild(details);
+
+    if (element.children.length > 0) {
+      var childList = document.createElement('ul');
+      element.children.forEach(function(child) {
+        var childNode = visualizeTree(child, childList);
         node.children.push(childNode);
-      }
+      });
+      elementDiv.appendChild(childList);
     }
+
+    container.appendChild(elementDiv);
 
     return node;
   }
+
+  document.getElementById('jsonInput').addEventListener('change', function(event) {
+    var file = event.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var jsonContent = e.target.result;
+        try {
+          htmlTree = JSON.parse(jsonContent);
+          var treeContainer = document.getElementById('tree-container');
+          treeContainer.innerHTML = ''; // Clear previous content
+          visualizeTree(htmlTree, treeContainer);
+        } catch (error) {
+          console.error('Error parsing JSON:', error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  });
 
   function validateAndSave() {
     var firstName = document.getElementById("firstName").value;

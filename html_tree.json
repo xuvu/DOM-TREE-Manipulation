@@ -1,0 +1,232 @@
+{
+  "id": "",
+  "tag": "body",
+  "node_identifier": "body",
+  "sequenceCount": 0,
+  "text": "Welcome\n    This is my website.\n    First name\n    \n    Last name\n    \n    \n      something1\n      something2\n      something3\n    \n    \n      \n        \n        \n      \n    \n    \n      \n        \n        \n      \n    \n    save button\n    Visualize JSON\n    \n  \n\n\n\n  function visualizeTree(element, container) {\n    var node = {\n      text: element.text,\n      tag: element.tag,\n      type: element.type,\n      checked: element.checked,\n      node_identifier: element.node_identifier,\n      sequenceCount: element.sequenceCount,\n      value: element.value,\n      tree_level: element.tree_level,\n      children:[]\n    };\n    \n    var elementDiv = document.createElement('div');\n    elementDiv.innerHTML = '<strong>' + element.tag + '</strong>';\n\n    var details = document.createElement('ul');\n    details.innerHTML += '<li>text: ' + element.text + '</li>';\n    details.innerHTML += '<li>tag: ' + element.tag + '</li>';\n    details.innerHTML += '<li>type: ' + element.type + '</li>';\n    details.innerHTML += '<li>checked: ' + element.checked + '</li>';\n    details.innerHTML += '<li>node_identifier: ' + element.node_identifier + '</li>';\n    details.innerHTML += '<li>sequnceCount: ' + element.sequenceCount + '</li>';\n    details.innerHTML += '<li>value: ' + element.value + '</li>';\n    details.innerHTML += '<li>tree_level: ' + element.tree_level + '</li>';\n\n    elementDiv.appendChild(details);\n\n    if (element.children.length > 0) {\n      var childList = document.createElement('ul');\n      element.children.forEach(function(child) {\n        var childNode = visualizeTree(child, childList);\n        node.children.push(childNode);\n      });\n      elementDiv.appendChild(childList);\n    }\n\n    container.appendChild(elementDiv);\n\n    return node;\n  }\n\n  document.getElementById('jsonInput').addEventListener('change', function(event) {\n    var file = event.target.files[0];\n    if (file) {\n      var reader = new FileReader();\n      reader.onload = function(e) {\n        var jsonContent = e.target.result;\n        try {\n          htmlTree = JSON.parse(jsonContent);\n          var treeContainer = document.getElementById('tree-container');\n          treeContainer.innerHTML = ''; // Clear previous content\n          visualizeTree(htmlTree, treeContainer);\n        } catch (error) {\n          console.error('Error parsing JSON:', error);\n        }\n      };\n      reader.readAsText(file);\n    }\n  });\n\n  function validateAndSave() {\n    var firstName = document.getElementById(\"firstName\").value;\n    var lastName = document.getElementById(\"lastName\").value;\n\n    if (firstName === \"\" || lastName === \"\") {\n      alert(\"Please fill in both first and last name.\");\n    } else {\n      // Perform save action or additional validation here\n      alert(\"Save successful!\");\n    }\n  }",
+  "tree_level": 0,
+  "children": [
+    {
+      "id": "",
+      "tag": "h1",
+      "node_identifier": "body h1",
+      "sequenceCount": 0,
+      "text": "Welcome",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "",
+      "tag": "p",
+      "node_identifier": "body p",
+      "sequenceCount": 0,
+      "text": "This is my website.",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "",
+      "tag": "label",
+      "node_identifier": "body label",
+      "sequenceCount": 0,
+      "text": "First name",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "firstName",
+      "tag": "input",
+      "type": "text",
+      "checked": false,
+      "node_identifier": "body input",
+      "sequenceCount": 0,
+      "text": "",
+      "value": "korawit",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "",
+      "tag": "label",
+      "node_identifier": "body label",
+      "sequenceCount": 1,
+      "text": "Last name",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "lastName",
+      "tag": "input",
+      "type": "text",
+      "checked": false,
+      "node_identifier": "body input",
+      "sequenceCount": 1,
+      "text": "",
+      "value": "kaema",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "",
+      "tag": "select",
+      "type": "select-one",
+      "node_identifier": "body select",
+      "sequenceCount": 0,
+      "text": "something1\n      something2\n      something3",
+      "value": "something3",
+      "tree_level": 1,
+      "children": [
+        {
+          "id": "",
+          "tag": "option",
+          "node_identifier": "body select option",
+          "sequenceCount": 0,
+          "text": "something1",
+          "value": "something1",
+          "tree_level": 2,
+          "children": []
+        },
+        {
+          "id": "",
+          "tag": "option",
+          "node_identifier": "body select option",
+          "sequenceCount": 1,
+          "text": "something2",
+          "value": "something2",
+          "tree_level": 2,
+          "children": []
+        },
+        {
+          "id": "",
+          "tag": "option",
+          "node_identifier": "body select option",
+          "sequenceCount": 2,
+          "text": "something3",
+          "value": "something3",
+          "tree_level": 2,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "",
+      "tag": "div",
+      "node_identifier": "body div",
+      "sequenceCount": 0,
+      "text": "",
+      "tree_level": 1,
+      "children": [
+        {
+          "id": "",
+          "tag": "div",
+          "node_identifier": "body div div",
+          "sequenceCount": 0,
+          "text": "",
+          "tree_level": 2,
+          "children": [
+            {
+              "id": "",
+              "tag": "input",
+              "type": "checkbox",
+              "checked": true,
+              "node_identifier": "body div div input",
+              "sequenceCount": 0,
+              "text": "",
+              "value": "on",
+              "tree_level": 3,
+              "children": []
+            },
+            {
+              "id": "",
+              "tag": "input",
+              "type": "radio",
+              "checked": true,
+              "node_identifier": "body div div input",
+              "sequenceCount": 1,
+              "text": "",
+              "value": "on",
+              "tree_level": 3,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "",
+      "tag": "div",
+      "node_identifier": "body div",
+      "sequenceCount": 1,
+      "text": "",
+      "tree_level": 1,
+      "children": [
+        {
+          "id": "",
+          "tag": "div",
+          "node_identifier": "body div div",
+          "sequenceCount": 1,
+          "text": "",
+          "tree_level": 2,
+          "children": [
+            {
+              "id": "",
+              "tag": "input",
+              "type": "checkbox",
+              "checked": true,
+              "node_identifier": "body div div input",
+              "sequenceCount": 2,
+              "text": "",
+              "value": "on",
+              "tree_level": 3,
+              "children": []
+            },
+            {
+              "id": "",
+              "tag": "input",
+              "type": "radio",
+              "checked": true,
+              "node_identifier": "body div div input",
+              "sequenceCount": 3,
+              "text": "",
+              "value": "on",
+              "tree_level": 3,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "",
+      "tag": "button",
+      "type": "submit",
+      "node_identifier": "body button",
+      "sequenceCount": 0,
+      "text": "save button",
+      "value": "",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "jsonInput",
+      "tag": "input",
+      "type": "file",
+      "checked": false,
+      "node_identifier": "body input",
+      "sequenceCount": 2,
+      "text": "",
+      "value": "",
+      "tree_level": 1,
+      "children": []
+    },
+    {
+      "id": "tree-container",
+      "tag": "div",
+      "node_identifier": "body div",
+      "sequenceCount": 2,
+      "text": "",
+      "tree_level": 1,
+      "children": []
+    }
+  ]
+}
