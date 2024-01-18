@@ -6,9 +6,9 @@
     <h1>Welcome</h1>
     <p>This is my website.</p>
     <label>First name</label>
-    <input type="text" placeholder="something" value=""/>
+    <input type="text" id="firstName" placeholder="something" value="" />
     <label>Last name</label>
-    <input type="text" placeholder="something" value=""/>
+    <input type="text" id="lastName" placeholder="something" value="" />
     <select>
       <option>something1</option>
       <option>something2</option>
@@ -16,46 +16,63 @@
     </select>
     <div>
       <div>
-        <input type="checkbox" /> 
+        <input type="checkbox" />
         <input type="radio" />
       </div>
     </div>
-    <button>save button</button>
+    <div>
+      <div>
+        <input type="checkbox" />
+        <input type="radio" />
+      </div>
+    </div>
+    <button onclick="validateAndSave()">save button</button>
   </body>
 </html>
-
 
 <script>
   var fixture = {
     target: "firstname",
-    text: "korawit"
-  }
+    text: "korawit",
+  };
   iterateThroughDOM(document.body);
 
-    function iterateThroughDOM(element) {
-      if(element.tagName.toLowerCase() === 'script') {
-        return null; // Skip script elements
-      }
-      
-      if(fixture.target === element.id){
-        element.value = fixture.text
-      }
-      
-      var node = {
-        id: element.id,
-        tag: element.tagName.toLowerCase(),
-        text: element.innerText.trim(),
-        value: element.value, // Include the value property
-        children: []
-      };
-
-      for (var i = 0; i < element.children.length; i++) {
-        var childNode = iterateThroughDOM(element.children[i]);
-        if (childNode !== null) {
-          node.children.push(childNode);
-        }
-      }
-
-      return node;
+  function iterateThroughDOM(element) {
+    if (element.tagName.toLowerCase() === "script") {
+      return null; // Skip script elements
     }
+
+    if (fixture.target.toLowerCase() === element.id.toLowerCase()) {
+      element.value = fixture.text;
+    }
+
+    var node = {
+      id: element.id,
+      tag: element.tagName.toLowerCase(),
+      text: element.innerText.trim(),
+      value: element.value, // Include the value property
+      children: [],
+    };
+
+    for (var i = 0; i < element.children.length; i++) {
+      var childNode = iterateThroughDOM(element.children[i]);
+      if (childNode !== null) {
+        node.children.push(childNode);
+      }
+    }
+
+    return node;
+  }
+
+  function validateAndSave() {
+    var firstName = document.getElementById("firstName").value;
+    var lastName = document.getElementById("lastName").value;
+
+    if (firstName === "" || lastName === "") {
+      alert("Please fill in both first and last name.");
+    } else {
+      // Perform save action or additional validation here
+      alert("Save successful!");
+    }
+  }
 </script>

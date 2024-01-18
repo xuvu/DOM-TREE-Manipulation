@@ -34,24 +34,39 @@ function clearVisualization(element, container) {
 }
 
 function visualizeTree(element, container) {
-  var node = document.createElement('div');
-  node.innerHTML = '<strong>' + element.tag + '</strong>: ' + element.text;
-  node.innerHTML += ' (Value: ' + element.value + ')';
-  node.innerHTML += ' (Level: ' + element.tree_level + ')';
-  node.innerHTML += ' (Parent: ' + element.parent_id + ')';
-  node.innerHTML += ' (Sequence: ' + element.sequence + ')';
+  var node = {
+    text: element.text,
+    tag: element.tag,
+    node_identifier: element.node_identifier,
+    value: element.value,
+    tree_level: element.tree_level,
+    children:[]
+  };
+
+  var elementDiv = document.createElement('div');
+  elementDiv.innerHTML = '<strong>' + element.tag + '</strong>';
+
+  var details = document.createElement('ul');
+  details.innerHTML += '<li>text: ' + element.text + '</li>';
+  details.innerHTML += '<li>tag: ' + element.tag + '</li>';
+  details.innerHTML += '<li>node_identifier: ' + element.node_identifier + '</li>';
+  details.innerHTML += '<li>value: ' + element.value + '</li>';
+  details.innerHTML += '<li>tree_level: ' + element.tree_level + '</li>';
+
+  elementDiv.appendChild(details);
 
   if (element.children.length > 0) {
     var childList = document.createElement('ul');
     element.children.forEach(function(child) {
-      var childItem = document.createElement('li');
-      visualizeTree(child, childItem);
-      childList.appendChild(childItem);
+      var childNode = visualizeTree(child, childList);
+      node.children.push(childNode);
     });
-    node.appendChild(childList);
+    elementDiv.appendChild(childList);
   }
 
-  container.appendChild(node);
+  container.appendChild(elementDiv);
+
+  return node;
 }
 
 document.getElementById('fileInput').addEventListener('change', function(event) {
@@ -76,18 +91,17 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
 });
 
 function buildTree(element,current_level = 0, parent_id = null, sequence = 0) {
+  console.log(element.tagName, current_level)
   if (element.tagName.toLowerCase() === 'script') {
     return null; // Skip script elements
   }
-
   var node = {
     id: element.id,
     tag: element.tagName.toLowerCase(),
+    node_identifier: '',
     text: element.innerText.trim(),
     value: element.value, // Include the value property
     tree_level: current_level,
-    parent: parent_id,
-    sequnce: sequence,
     children: []
   };
 
