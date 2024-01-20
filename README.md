@@ -1,2 +1,2 @@
 # DOM-TREE-Manipulation
-Search for optimal information insertion, clicking, etc to navigate to next page
+DOM snapshot for reducing laboriously inputting the same thing in the same web page
