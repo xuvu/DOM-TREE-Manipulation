@@ -1,4 +1,4 @@
-var htmlTree;
+let htmlTree;
 let sequenceCount = {};
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === 'logUserDOM') {
     // Access the body element of the user's DOM
     var userBody = document.body;
-    htmlTree = buildTree(userBody);    
+    htmlTree = buildTree(userBody, 0, '', 0);    
     // Log information about the user's DOM
     console.log(JSON.stringify(htmlTree, null, 2));
 
@@ -30,30 +30,33 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
-function buildTree(element, current_level = 0, sequence = '') {
-  if (element.tagName.toLowerCase() === 'script') {
+function buildTree(element, current_level = 0, sequence = '', iteration = 0) {
+  sequence = sequence ? sequence + ' > ' + element.tagName.toLowerCase() : element.tagName.toLowerCase();
+  if(iteration === 0){
+    htmlTree = null;
+    sequenceCount = {};
+  }
+  if (!sequence.includes("body")) {
     return null; // Skip script elements
   }
-  sequence = sequence ? sequence + ' ' + element.tagName.toLowerCase() : element.tagName.toLowerCase();
-  
   // If the sequence is already in sequenceCount, increment its count. Otherwise, initialize it to 0.
   sequenceCount[sequence] = sequenceCount[sequence] !== undefined ? sequenceCount[sequence] + 1 : 0;
   
   var node = {
-    id: element.id,
+    id: element.id ? element.id : '',
     tag: element.tagName.toLowerCase(),
-    type: element.type,
-    checked: element.checked,
+    type: element.type ? element.type : '',
+    checked: element.checked ? element.checked : '',
     node_identifier: sequence, // Include the sequence count
     sequenceCount: sequenceCount[sequence],
-    text: element.innerText.trim(),
-    value: element.value, // Include the value property
+    // text: element.innerText ? element.innerText.trim() : '',
+    value: element.value ? element.value : '', // Include the value property
     tree_level: current_level,
     children: []
   };
 
   for (var i = 0; i < element.children.length; i++) {
-    var childNode = buildTree(element.children[i], current_level + 1, sequence);
+    var childNode = buildTree(element.children[i], current_level + 1, sequence, iteration + 1);
     if (childNode !== null) {
       node.children.push(childNode);
     }
@@ -64,7 +67,7 @@ function buildTree(element, current_level = 0, sequence = '') {
 
 function visualizeTree(element) {
   var node = {
-    text: element.text,
+    // text: element.text,
     tag: element.tag,
     type: element.type,
     checked: element.checked,
@@ -77,9 +80,8 @@ function visualizeTree(element) {
   fillNode(node)
 
   if (element.children.length > 0) {
-    var childList = document.createElement('ul');
     element.children.forEach(function(child) {
-      var childNode = visualizeTree(child, childList);
+      var childNode = visualizeTree(child);
       node.children.push(childNode);
     });
   }
@@ -87,31 +89,49 @@ function visualizeTree(element) {
 }
 
 function fillNode(node) {
+  if(!document.querySelectorAll(node.node_identifier)[node.sequenceCount]){
+    return null;
+  }
   switch(node.type) {
     case 'text':
       // Handle text input
-      console.log('This is a text input with value: ' + node.value);
-      document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      if(node.value){
+        console.log('This is a text input with value: ' + node.value);
+
+        target = document.querySelectorAll(node.node_identifier)[node.sequenceCount];
+        target.value = node.value;
+
+        // Dispatch the events
+        target.dispatchEvent(new Event('input'));
+      }
       break;
     case 'checkbox':
       // Handle checkbox input
-      console.log('This is a checkbox input and it is ' + (node.checked ? 'checked' : 'not checked'));
-      document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      if(node.checked){
+        console.log('This is a checkbox input and it is ' + (node.checked ? 'checked' : 'not checked'));
+        document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      }
       break;
     case 'radio':
       // Handle radio input
-      console.log('This is a radio input and it is ' + (node.checked ? 'selected' : 'not selected'));
-      document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      if(node.checked){
+        console.log('This is a radio input and it is ' + (node.checked ? 'selected' : 'not selected'));
+        document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      }
       break;
     case 'select-one':
       // Handle select input
-      console.log('This is a radio input and it is ' + (node.value ? 'selected' : 'not selected'));
-      document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      if(node.value){
+        console.log('This is a radio input and it is ' + (node.value ? 'selected' : 'not selected'));
+        document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      }
       break;
     case 'date':
       // date
-      console.log('This is a date input and it is ' + (node.value ? 'selected' : 'not selected'));
-      document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      if(node.value){
+        console.log('This is a date input and it is ' + (node.value ? 'selected' : 'not selected'));
+        document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      }
       break;
     default:
       console.log('This is a ' + node.type + ' input');
