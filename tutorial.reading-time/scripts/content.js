@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === 'logUserDOM') {
     // Access the body element of the user's DOM
     var userBody = document.body;
-    htmlTree = buildTree(userBody, 0, '', 0);    
+    htmlTree = buildDOMTree(userBody, 0, '', 0);    
     // Log information about the user's DOM
     console.log(JSON.stringify(htmlTree, null, 2));
 
@@ -26,11 +26,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if(request.action === 'jsonUpload') {
     // Log the file content
     console.log('File content:', request.fileContent);
-    visualizeTree(request.fileContent);
+    traverseDOM(request.fileContent);
   }
 });
 
-function buildTree(element, current_level = 0, sequence = '', iteration = 0) {
+function buildDOMTree(element, current_level = 0, sequence = '', iteration = 0) {
   sequence = sequence ? sequence + ' > ' + element.tagName.toLowerCase() : element.tagName.toLowerCase();
   if(iteration === 0){
     htmlTree = null;
@@ -49,14 +49,14 @@ function buildTree(element, current_level = 0, sequence = '', iteration = 0) {
     checked: element.checked ? element.checked : '',
     node_identifier: sequence, // Include the sequence count
     sequenceCount: sequenceCount[sequence],
-    // text: element.innerText ? element.innerText.trim() : '',
+    text: (element.textContent && iteration !== 0) ? element.textContent.trim() : '',
     value: element.value ? element.value : '', // Include the value property
     tree_level: current_level,
     children: []
   };
 
   for (var i = 0; i < element.children.length; i++) {
-    var childNode = buildTree(element.children[i], current_level + 1, sequence, iteration + 1);
+    var childNode = buildDOMTree(element.children[i], current_level + 1, sequence, iteration + 1);
     if (childNode !== null) {
       node.children.push(childNode);
     }
@@ -64,27 +64,36 @@ function buildTree(element, current_level = 0, sequence = '', iteration = 0) {
 
   return node;
 }
-
-function visualizeTree(element) {
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function traverseDOM(element) {
   var node = {
-    // text: element.text,
-    tag: element.tag,
+    text: element.textContent,
+    tag: element.tagName,
     type: element.type,
     checked: element.checked,
     node_identifier: element.node_identifier,
     sequenceCount: element.sequenceCount,
     value: element.value,
     tree_level: element.tree_level,
-    children:[]
+    children: [],
   };
-  fillNode(node)
+  fillNode(node);
 
   if (element.children.length > 0) {
-    element.children.forEach(function(child) {
-      var childNode = visualizeTree(child);
+    for (const child of element.children) {
+      // Introduce a delay before processing each child
+      await delay(1000); // Adjust the delay time as needed
+
+      var childNode = await traverseDOM(child);
       node.children.push(childNode);
-    });
+    }
+  } else {
+    // Introduce a delay for elements without children
+    await delay(1000); // Adjust the delay time as needed
   }
+  
   return node;
 }
 
