@@ -3,36 +3,45 @@ let sequenceCount = {};
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   // Check if the received message is to log the user's DOM
-  if (request.action === 'logUserDOM') {
+  if (request.action === "logUserDOM") {
     // Access the body element of the user's DOM
     var userBody = document.body;
-    htmlTree = buildDOMTree(userBody, 0, '', 0);    
+    htmlTree = buildDOMTree(userBody, 0, "", 0);
     // Log information about the user's DOM
     console.log(JSON.stringify(htmlTree, null, 2));
 
     // Create a Blob from the htmlTree
-    var blob = new Blob([JSON.stringify(htmlTree, null, 2)], {type: "application/json"});
+    var blob = new Blob([JSON.stringify(htmlTree, null, 2)], {
+      type: "application/json",
+    });
     // Create a URL representing the Blob
     var url = URL.createObjectURL(blob);
 
     // Create a link for the user to download the htmlTree
-    var downloadLink = document.createElement('a');
+    var downloadLink = document.createElement("a");
     downloadLink.href = url;
-    downloadLink.download = 'htmlTree.json';
+    downloadLink.download = "htmlTree.json";
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
   }
-  if(request.action === 'jsonUpload') {
+  if (request.action === "jsonUpload") {
     // Log the file content
-    console.log('File content:', request.fileContent);
+    console.log("File content:", request.fileContent);
     traverseDOM(request.fileContent);
   }
 });
 
-function buildDOMTree(element, current_level = 0, sequence = '', iteration = 0) {
-  sequence = sequence ? sequence + ' > ' + element.tagName.toLowerCase() : element.tagName.toLowerCase();
-  if(iteration === 0){
+function buildDOMTree(
+  element,
+  current_level = 0,
+  sequence = "",
+  iteration = 0
+) {
+  sequence = sequence
+    ? sequence + " > " + element.tagName.toLowerCase()
+    : element.tagName.toLowerCase();
+  if (iteration === 0) {
     htmlTree = null;
     sequenceCount = {};
   }
@@ -40,23 +49,30 @@ function buildDOMTree(element, current_level = 0, sequence = '', iteration = 0) 
     return null; // Skip script elements
   }
   // If the sequence is already in sequenceCount, increment its count. Otherwise, initialize it to 0.
-  sequenceCount[sequence] = sequenceCount[sequence] !== undefined ? sequenceCount[sequence] + 1 : 0;
-  
+  sequenceCount[sequence] =
+    sequenceCount[sequence] !== undefined ? sequenceCount[sequence] + 1 : 0;
+
   var node = {
-    id: element.id ? element.id : '',
+    id: element.id ? element.id : "",
     tag: element.tagName.toLowerCase(),
-    type: element.type ? element.type : '',
-    checked: element.checked ? element.checked : '',
+    type: element.type ? element.type : "",
+    checked: element.checked ? element.checked : "",
     node_identifier: sequence, // Include the sequence count
     sequenceCount: sequenceCount[sequence],
-    text: (element.textContent && iteration !== 0) ? element.textContent.trim() : '',
-    value: element.value ? element.value : '', // Include the value property
+    text:
+      element.textContent && iteration !== 0 ? element.textContent.trim() : "",
+    value: element.value ? element.value : "", // Include the value property
     tree_level: current_level,
-    children: []
+    children: [],
   };
 
   for (var i = 0; i < element.children.length; i++) {
-    var childNode = buildDOMTree(element.children[i], current_level + 1, sequence, iteration + 1);
+    var childNode = buildDOMTree(
+      element.children[i],
+      current_level + 1,
+      sequence,
+      iteration + 1
+    );
     if (childNode !== null) {
       node.children.push(childNode);
     }
@@ -64,85 +80,102 @@ function buildDOMTree(element, current_level = 0, sequence = '', iteration = 0) 
 
   return node;
 }
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-async function traverseDOM(element) {
-  var node = {
-    text: element.textContent,
-    tag: element.tagName,
-    type: element.type,
-    checked: element.checked,
-    node_identifier: element.node_identifier,
-    sequenceCount: element.sequenceCount,
-    value: element.value,
-    tree_level: element.tree_level,
-    children: [],
-  };
-  fillNode(node);
 
-  if (element.children.length > 0) {
-    for (const child of element.children) {
-      // Introduce a delay before processing each child
-      await delay(1000); // Adjust the delay time as needed
-
-      var childNode = await traverseDOM(child);
-      node.children.push(childNode);
-    }
-  } else {
-    // Introduce a delay for elements without children
-    await delay(1000); // Adjust the delay time as needed
-  }
-  
-  return node;
+function traverseDOM(element, delay = 0) {
+  return new Promise((resolve) => {
+    setTimeout(async () => {
+      // Repeat filling node until succeed
+      fillingSuccess = await fillNode(element); // Assuming fillNode returns a promise
+      while(!fillingSuccess){
+        fillingSuccess = await fillNode(element); // Assuming fillNode returns a promise
+        if (!fillingSuccess) {
+          console.log("filling process repeated")
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+        }
+      }
+      if (element.children.length > 0) {
+        for (let i = 0; i < element.children.length; i++) {
+          await traverseDOM(element.children[i], delay); // Recursively traverse child nodes with the same delay
+        }
+      }
+      resolve();
+    }, delay);
+  });
 }
 
-function fillNode(node) {
-  if(!document.querySelectorAll(node.node_identifier)[node.sequenceCount]){
+async function fillNode(node) {
+  if (!document.querySelectorAll(node.node_identifier)[node.sequenceCount]) {
     return null;
   }
-  switch(node.type) {
-    case 'text':
+  switch (node.type) {
+    case "text":
       // Handle text input
-      if(node.value){
-        console.log('This is a text input with value: ' + node.value);
+      if (node.value) {
+        console.log("This is a text input with value: " + node.value);
 
-        target = document.querySelectorAll(node.node_identifier)[node.sequenceCount];
+        target = document.querySelectorAll(node.node_identifier)[
+          node.sequenceCount
+        ];
         target.value = node.value;
-
         // Dispatch the events
-        target.dispatchEvent(new Event('input'));
+        target.dispatchEvent(new Event("input"));
+        if(target.value === node.value){
+          return false
+        }
+        else{
+          return false
+        }
       }
       break;
-    case 'checkbox':
+    case "checkbox":
       // Handle checkbox input
-      if(node.checked){
-        console.log('This is a checkbox input and it is ' + (node.checked ? 'checked' : 'not checked'));
-        document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      if (node.checked) {
+        console.log(
+          "This is a checkbox input and it is " +
+            (node.checked ? "checked" : "not checked")
+        );
+        document.querySelectorAll(node.node_identifier)[
+          node.sequenceCount
+        ].checked = node.checked;
       }
       break;
-    case 'radio':
+    case "radio":
       // Handle radio input
-      if(node.checked){
-        console.log('This is a radio input and it is ' + (node.checked ? 'selected' : 'not selected'));
-        document.querySelectorAll(node.node_identifier)[node.sequenceCount].checked = node.checked;
+      if (node.checked) {
+        console.log(
+          "This is a radio input and it is " +
+            (node.checked ? "selected" : "not selected")
+        );
+        document.querySelectorAll(node.node_identifier)[
+          node.sequenceCount
+        ].checked = node.checked;
       }
       break;
-    case 'select-one':
+    case "select-one":
       // Handle select input
-      if(node.value){
-        console.log('This is a radio input and it is ' + (node.value ? 'selected' : 'not selected'));
-        document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      if (node.value) {
+        console.log(
+          "This is a radio input and it is " +
+            (node.value ? "selected" : "not selected")
+        );
+        document.querySelectorAll(node.node_identifier)[
+          node.sequenceCount
+        ].value = node.value;
       }
       break;
-    case 'date':
+    case "date":
       // date
-      if(node.value){
-        console.log('This is a date input and it is ' + (node.value ? 'selected' : 'not selected'));
-        document.querySelectorAll(node.node_identifier)[node.sequenceCount].value = node.value;
+      if (node.value) {
+        console.log(
+          "This is a date input and it is " +
+            (node.value ? "selected" : "not selected")
+        );
+        document.querySelectorAll(node.node_identifier)[
+          node.sequenceCount
+        ].value = node.value;
       }
       break;
     default:
-      console.log('This is a ' + node.type + ' input');
-    }
+      console.log("This is a " + node.type + " input");
   }
+}
