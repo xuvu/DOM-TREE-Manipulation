@@ -28,7 +28,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "jsonUpload") {
     // Log the file content
     console.log("File content:", request.fileContent);
-    traverseDOM(request.fileContent);
+    traverseDOM(request.fileContent, 0, 3);
   }
 });
 
@@ -81,21 +81,22 @@ function buildDOMTree(
   return node;
 }
 
-function traverseDOM(element, delay = 0) {
+function traverseDOM(element, delay = 0, maximumRetryPerNode = 3) {
   return new Promise((resolve) => {
     setTimeout(async () => {
-      // Repeat filling node until succeed
-      fillingSuccess = await fillNode(element); // Assuming fillNode returns a promise
-      while(!fillingSuccess){
-        fillingSuccess = await fillNode(element); // Assuming fillNode returns a promise
+      let retryCount = 0;
+      fillingSuccess = await fillNode(element, (retryCount >= maximumRetryPerNode)); // Assuming fillNode returns a promise
+      while (!fillingSuccess && !(retryCount >= maximumRetryPerNode)) {
+        fillingSuccess = await fillNode(element, (retryCount >= maximumRetryPerNode)); // Assuming fillNode returns a promise
         if (!fillingSuccess) {
-          console.log("filling process repeated")
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+          console.log("filling process repeated");
+          await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
         }
+        retryCount++;
       }
       if (element.children.length > 0) {
         for (let i = 0; i < element.children.length; i++) {
-          await traverseDOM(element.children[i], delay); // Recursively traverse child nodes with the same delay
+          await traverseDOM(element.children[i], delay, maximumRetryPerNode); // Recursively traverse child nodes with the same delay
         }
       }
       resolve();
@@ -103,7 +104,7 @@ function traverseDOM(element, delay = 0) {
   });
 }
 
-async function fillNode(node) {
+async function fillNode(node, shouldStop) {
   if (!document.querySelectorAll(node.node_identifier)[node.sequenceCount]) {
     return null;
   }
@@ -119,14 +120,13 @@ async function fillNode(node) {
         target.value = node.value;
         // Dispatch the events
         target.dispatchEvent(new Event("input"));
-        if(target.value === node.value){
-          return false
-        }
-        else{
-          return false
+        debugger;
+        if (target.value === node.value || shouldStop) {
+          return true;
+        } else {
+          return false;
         }
       }
-      break;
     case "checkbox":
       // Handle checkbox input
       if (node.checked) {
@@ -137,8 +137,12 @@ async function fillNode(node) {
         document.querySelectorAll(node.node_identifier)[
           node.sequenceCount
         ].checked = node.checked;
+        if (target.value === node.value || shouldStop) {
+          return true;
+        } else {
+          return false;
+        }
       }
-      break;
     case "radio":
       // Handle radio input
       if (node.checked) {
@@ -149,8 +153,12 @@ async function fillNode(node) {
         document.querySelectorAll(node.node_identifier)[
           node.sequenceCount
         ].checked = node.checked;
+        if (target.value === node.value || shouldStop) {
+          return true;
+        } else {
+          return false;
+        }
       }
-      break;
     case "select-one":
       // Handle select input
       if (node.value) {
@@ -161,8 +169,12 @@ async function fillNode(node) {
         document.querySelectorAll(node.node_identifier)[
           node.sequenceCount
         ].value = node.value;
+        if (target.value === node.value || shouldStop) {
+          return true;
+        } else {
+          return false;
+        }
       }
-      break;
     case "date":
       // date
       if (node.value) {
@@ -173,9 +185,14 @@ async function fillNode(node) {
         document.querySelectorAll(node.node_identifier)[
           node.sequenceCount
         ].value = node.value;
+        if (target.value === node.value || shouldStop) {
+          return true;
+        } else {
+          return false;
+        }
       }
-      break;
     default:
       console.log("This is a " + node.type + " input");
+      return true;
   }
 }
